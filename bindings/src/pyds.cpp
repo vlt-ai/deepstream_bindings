@@ -63,7 +63,7 @@ namespace pydeepstream {
         bindnvbufsurface(m);
         bindnvdsinfer(m);
         bindopticalflowmeta(m);
-        bindcustom(m);
+        bindvolt(m);
 
     }   // end PYBIND11_MODULE(pyds, m)
 }

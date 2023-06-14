@@ -19,18 +19,17 @@
 
 namespace pydsdoc
 {
-    namespace custom
+    namespace volt
     {
-        namespace CustomDataStructDoc
+        namespace VoltDataStructDoc
         {
             constexpr const char* descr = R"pyds(
-                Holds custom struct data.
+                Holds volt struct data.
 
-                :ivar structId: *int*, ID for this struct.
-                :ivar message: *str*, Message embedded in this structure.
-                :ivar sampleInt: *int*, Sample int data)pyds";
+                :ivar cameraUUID: *str*, Camera uuid to attach meta.
+                :ivar producerTimestamp: *int*, First UTC now of the frame.)";
 
-            constexpr const char* cast=R"pyds(cast given object/data to :class:`CustomDataStruct`, call pyds.CustomDataStruct.cast(data))pyds";
+            constexpr const char* cast=R"pyds(cast given object/data to :class:`VoltDataStruct`, call pyds.VoltDataStruct.cast(data))pyds";
         }
     }
 }

@@ -18,8 +18,7 @@
 
 using namespace std;
 
-struct CustomDataStruct {
-  int structId;
-  char* message;
-  int sampleInt;
+struct VoltDataStruct {
+  char* cameraUUID;
+  int64_t producerTimestamp;
 };

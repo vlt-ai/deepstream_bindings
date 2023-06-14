@@ -18,12 +18,12 @@
 // NvDsMetaSchema
 
 #include "pyds.hpp"
-#include "custom_data.hpp"
-#include "../../../docstrings/customdoc.h"
+#include "volt_data.hpp"
+#include "../../../docstrings/voltdoc.h"
 #include "../../../docstrings/functionsdoc.h"
 
 namespace py = pybind11;
 
 namespace pydeepstream {
-    void bindcustom(py::module &m);
+    void bindvolt(py::module &m);
 }
