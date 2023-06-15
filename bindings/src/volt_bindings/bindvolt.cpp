@@ -29,8 +29,8 @@ namespace pydeepstream {
         VoltDataStruct * srcData = (VoltDataStruct *) srcMeta->user_meta_data;
         VoltDataStruct *destData = (VoltDataStruct *) g_malloc0(
                         sizeof(VoltDataStruct));
-        destData->structId = srcData->cameraUUID;
-        destData->sampleInt = srcData->producerTimestamp;
+        destData->cameraUUID = srcData->cameraUUID;
+        destData->producerTimestamp = srcData->producerTimestamp;
         return destData;
     }
 

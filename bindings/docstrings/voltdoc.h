@@ -27,7 +27,7 @@ namespace pydsdoc
                 Holds volt struct data.
 
                 :ivar cameraUUID: *str*, Camera uuid to attach meta.
-                :ivar producerTimestamp: *int*, First UTC now of the frame.)";
+                :ivar producerTimestamp: *int*, First UTC now of the frame.)pyds";
 
             constexpr const char* cast=R"pyds(cast given object/data to :class:`VoltDataStruct`, call pyds.VoltDataStruct.cast(data))pyds";
         }

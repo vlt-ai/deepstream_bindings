@@ -19,6 +19,6 @@
 using namespace std;
 
 struct VoltDataStruct {
-  char* cameraUUID;
+  string cameraUUID;
   int64_t producerTimestamp;
 };

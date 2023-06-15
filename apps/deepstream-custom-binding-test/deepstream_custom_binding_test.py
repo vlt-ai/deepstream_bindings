@@ -20,6 +20,7 @@
 import sys
 import os
 import gi
+import time
 
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
@@ -29,14 +30,14 @@ import pyds
 def bus_call(bus, message, loop):
     t = message.type
     if t == Gst.MessageType.EOS:
-        Gst.info("End-of-stream")
+        #Gst.info("End-of-stream")
         loop.quit()
     elif t == Gst.MessageType.WARNING:
         err, debug = message.parse_warning()
         Gst.warning("Warning: %s: %s" % (err, debug))
     elif t == Gst.MessageType.ERROR:
         err, debug = message.parse_error()
-        Gst.error("Error: %s: %s" % (err, debug))
+        print("Error: %s: %s" % (err, debug))
         loop.quit()
     return True
 
@@ -63,18 +64,17 @@ def streammux_src_pad_buffer_probe(pad, info, u_data):
         user_meta = pyds.nvds_acquire_user_meta_from_pool(batch_meta)
 
         if user_meta:
-            print('adding user meta')
+            print('adding user meta **************************')
             test_string = 'test message ' + str(frame_number)
-            data = pyds.alloc_custom_struct(user_meta)
-            data.message = test_string
-            data.message = pyds.get_string(data.message)
-            data.structId = frame_number
-            data.sampleInt = frame_number + 1
+            data = pyds.alloc_volt_struct(user_meta)
+            data.cameraUUID = "camera-uuid"
+            # print(f"time.time(): {time.time()}, time_type: {type(time.time())}")
+            data.producerTimestamp = int(time.time()) # UTC timestamp?
 
             user_meta.user_meta_data = data
             user_meta.base_meta.meta_type = pyds.NvDsMetaType.NVDS_USER_META
-
             pyds.nvds_add_user_meta_to_frame(frame_meta, user_meta)
+
         else:
             print('failed to acquire user meta')
 
@@ -112,13 +112,13 @@ def fakesink_sink_pad_buffer_probe(pad, info, u_data):
                 user_meta = pyds.NvDsUserMeta.cast(l_usr.data)
             except StopIteration:
                 continue
-
+            
+            print("Querying user meta data **************************")
             if user_meta.base_meta.meta_type == pyds.NvDsMetaType.NVDS_USER_META:
-                custom_msg_meta = pyds.CustomDataStruct.cast(user_meta.user_meta_data)
-                Gst.info(f'event msg meta, otherAttrs = {pyds.get_string(custom_msg_meta.message)}')
-                print('custom meta structId:: ', custom_msg_meta.structId)
-                print('custom meta msg:: ', pyds.get_string(custom_msg_meta.message))
-                print('custom meta sampleInt:: ', custom_msg_meta.sampleInt)
+                volt_msg_meta = pyds.VoltDataStruct.cast(user_meta.user_meta_data)
+            
+                print('volt meta cameraUUID:: ', volt_msg_meta.cameraUUID)
+                print('volt meta producerTimestamp:: ', volt_msg_meta.producerTimestamp)
             try:
                 l_usr = l_usr.next
             except StopIteration:
@@ -143,30 +143,30 @@ def main(args):
 
     pipeline = Gst.Pipeline()
     if not pipeline:
-        Gst.error(" Unable to create Pipeline")
+        print(" Unable to create Pipeline")
 
     source = Gst.ElementFactory.make("filesrc", "file-source")
     if not source:
-        Gst.error(" Unable to create Source")
+        print(" Unable to create Source")
 
     h264parser = Gst.ElementFactory.make("h264parse", "h264-parser")
     if not h264parser:
-        Gst.error(" Unable to create h264 parser")
+        print(" Unable to create h264 parser")
 
     decoder = Gst.ElementFactory.make("nvv4l2decoder", "nvv4l2-decoder")
     if not decoder:
-        Gst.error(" Unable to create Nvv4l2 Decoder")
+        print(" Unable to create Nvv4l2 Decoder")
 
     streammux = Gst.ElementFactory.make("nvstreammux", "Stream-muxer")
     if not streammux:
-        Gst.error(" Unable to create NvStreamMux")
+        print(" Unable to create NvStreamMux")
 
     queue = Gst.ElementFactory.make("queue", "queue")
     if not queue:
-        Gst.error(" Unable to create queue")
+        print(" Unable to create queue")
     queue1 = Gst.ElementFactory.make("queue", "queue1")
     if not queue1:
-        Gst.error(" Unable to create queue")
+        print(" Unable to create queue")
     sink = Gst.ElementFactory.make("fakesink", "fakesink")
     if not sink:
         sys.stderr.write(" Unable to create fake sink \n")
@@ -174,11 +174,11 @@ def main(args):
     print("Playing file %s " %args[1])
     source.set_property('location', args[1])
 
-    streammux.set_property('width', 1280)
-    streammux.set_property('height', 720)
+    # streammux.set_property('width', 1280)
+    # streammux.set_property('height', 720)
     streammux.set_property('batch-size', 1)
 
-    Gst.info("Adding elements to Pipeline")
+    #Gst.info("Adding elements to Pipeline")
     pipeline.add(source)
     pipeline.add(h264parser)
     pipeline.add(decoder)
@@ -187,17 +187,17 @@ def main(args):
     pipeline.add(queue1)
     pipeline.add(sink)
 
-    Gst.info("Linking elements in the Pipeline")
+    #Gst.info("Linking elements in the Pipeline")
     source.link(h264parser)
     h264parser.link(decoder)
 
     sinkpad = streammux.get_request_pad("sink_0")
     if not sinkpad:
-        Gst.error(" Unable to get the sink pad of streammux")
+        print(" Unable to get the sink pad of streammux")
 
     srcpad = decoder.get_static_pad("src")
     if not srcpad:
-        Gst.error(" Unable to get source pad of decoder(source)")
+        print(" Unable to get source pad of decoder(source)")
     srcpad.link(sinkpad)
 
     streammux.link(queue)
@@ -211,15 +211,15 @@ def main(args):
 
     streammux_src_pad = streammux.get_static_pad('src')
     if not streammux_src_pad:
-        Gst.error(" Unable to get src pad of streammux")
+        print(" Unable to get src pad of streammux")
     streammux_src_pad.add_probe(Gst.PadProbeType.BUFFER, streammux_src_pad_buffer_probe, 0)
 
     fakesink_sink_pad = sink.get_static_pad('sink')
     if not fakesink_sink_pad:
-        Gst.error(" Unable to get sink pad of fakesink")
+        print(" Unable to get sink pad of fakesink")
     fakesink_sink_pad.add_probe(Gst.PadProbeType.BUFFER, fakesink_sink_pad_buffer_probe, 0)
     Gst.debug_bin_to_dot_file(pipeline, Gst.DebugGraphDetails.ALL, 'graph')
-    Gst.info("Starting pipeline")
+    #Gst.info("Starting pipeline")
 
     pipeline.set_state(Gst.State.PLAYING)
     print("pipeline playing")

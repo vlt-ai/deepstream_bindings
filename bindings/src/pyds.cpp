@@ -27,7 +27,7 @@
 #include "bindopticalflow.hpp"
 #include "bindschema.hpp"
 #include "bindtrackermeta.hpp"
-#include "custom_binding/include/bindcustom.hpp"
+#include "volt_bindings/include/bindvolt.hpp"
 
 #include "pyds.hpp"
 
